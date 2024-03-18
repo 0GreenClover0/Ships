@@ -9,7 +9,7 @@ public class ShipSpawner : MonoBehaviour
     [SerializeField] private GameObject shipPrefab;
     [SerializeField] private GameObject pirateShipPrefab;
     [SerializeField] private GameObject cargoShipPrefab;
-    [SerializeField] private List<Transform> randomPositions = new List<Transform>();
+    [SerializeField] private List<SpawnPosition> randomPositions = new List<SpawnPosition>();
     [SerializeField] private List<float> spawnTimes = new List<float>();
     [SerializeField] private float pirateShipChance = 0.1f;
     [SerializeField] private float cargoShipChance = 0.2f;
@@ -47,6 +47,18 @@ public class ShipSpawner : MonoBehaviour
     {
         int randomPosition = UnityEngine.Random.Range(0, randomPositions.Count);
 
+        if (!randomPositions[randomPosition].CanSpawn())
+        {
+            for (int i = (randomPosition + 1) % randomPositions.Count; i != randomPosition; i = (i + 1) % randomPositions.Count)
+            {
+                if (randomPositions[i].CanSpawn())
+                {
+                    randomPosition = i;
+                    break;
+                }
+            }
+        }
+
         float randomRotationOffset = UnityEngine.Random.Range(-8.0f, 8.0f);
 
         float randomFloat = UnityEngine.Random.Range(0.0f, 1.0f);
@@ -57,7 +69,7 @@ public class ShipSpawner : MonoBehaviour
         else if (randomFloat >= pirateShipChance && randomFloat < pirateShipChance + cargoShipChance)
             prefab = cargoShipPrefab;
 
-        GameObject go = Instantiate(prefab, randomPositions[randomPosition].position, randomPositions[randomPosition].rotation);
+        GameObject go = Instantiate(prefab, randomPositions[randomPosition].transform.position, randomPositions[randomPosition].transform.rotation);
         Vector3 rotation = go.transform.eulerAngles;
         rotation.y += randomRotationOffset;
         go.transform.eulerAngles = rotation;
